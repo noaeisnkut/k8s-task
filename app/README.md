@@ -38,7 +38,11 @@ Why PostgreSQL (RDS) instead of PVCs or node storage?
 4. PV + containerized PostgreSQL – I could have taken the SQL dump I created from MySQL via SQLAlchemy and loaded it into a PostgreSQL instance running inside a pod, using a temporary folder or persistent volume. This would allow me to test or migrate the database without immediately using RDS. However, I would still be responsible for managing backups, replication, failover, and availability across multiple AZs, which is much harder to handle manually compared to using a managed service like RDS.
 
 **jenkins Process**
-
+After installing Jenkins in the Kubernetes cluster using the Helm chart, Jenkins runs as a Deployment with a LoadBalancer Service that exposes the UI. Once deployed, you can access the Jenkins dashboard via the external IP provided by the LoadBalancer: kubectl get svc -n jenkins
+logging in with the admin credentials configured in the Helm chart:
+Jenkins → Manage Jenkins → Credentials → Global → Add Credentials + adding dockerhub-credentials (username=docker-username, password=docker-password).
+From there, you create a new Pipeline job and configure it to use either a Jenkinsfile from SCM (GitHub) or a pipeline script directly.
+then execute the pipeline stages, which in your case include checking out the code, building a Docker image, pushing it to Docker Hub, and deploying the application to the EKS cluster via Helm. Proper configuration of credentials for Docker Hub and access to Kubernetes (kubectl + Helm installed in the Jenkins environment) is required to ensure the pipeline runs successfully.
 
 **Final Result:**
 The backend Flask app is now updated inside the EKS Prod environment.

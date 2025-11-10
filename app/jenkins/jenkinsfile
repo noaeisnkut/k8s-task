@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            label 'jenkins-agent'
+            defaultContainer 'jnlp'
+            yamlFile 'jenkins-agent.yaml'
+        }
 
     environment {
         DOCKER_IMAGE = "noa10203040/flask_app"
