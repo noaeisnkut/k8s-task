@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: flask
-  namespace: {{ .Values.namespace }}
+  name: flask-app
+  namespace: prod
 spec:
-  replicas: {{ .Values.flask.replicas }}
+  replicas: 1
   selector:
     matchLabels:
       app: flask
@@ -13,22 +13,22 @@ spec:
       labels:
         app: flask
     spec:
-      serviceAccountName: {{ .Values.serviceAccountName }}
+      serviceAccountName: flask-app-sa 
       containers:
         - name: flask-app
-          image: {{ .Values.flask.image }}
+          image: noa10203040/flask_app:latest
           ports:
-            - containerPort: {{ .Values.flask.containerPort }}
+            - containerPort: 5000
           env:
             - name: DB_USER
-              value: "postgres"
+              value: postgres
             - name: DB_HOST
-              value: "my-postgress-db.cc3m62swkfac.us-east-1.rds.amazonaws.com"
+              value: my-postgress-db.cc3m62swkfac.us-east-1.rds.amazonaws.com
             - name: DB_NAME
-              value: "flask"
+              value: flask
             - name: DB_PORT
               value: "5432"
             - name: AWS_REGION
-              value: "{{ .Values.aws.region }}"
+              value: us-east-1
             - name: SECRET_KEY
-              value: "{{ .Values.flask.secretKey }}"
+              value: my_secret_key

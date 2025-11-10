@@ -1,0 +1,11 @@
+namespace: prod
+serviceAccountName: flask-app-sa
+flask:
+  image: noa10203040/flask_app
+  replicas: 1
+  containerPort: 5000
+  servicePort: 5000
+  acmCertificateArn: arn:aws:acm:us-east-1:403539290568:certificate/788cf633-d525-408b-bfc8-d039ff4a283d
+  secretKey: my_secret_key
+aws:
+  region: us-east-1
