@@ -4,12 +4,12 @@
 
 Run the following command from the Terragrunt root directory:
 
-terragrunt run-all apply
+terragrunt apply
 
 This will create all infrastructure components and deploy all applications across environments.
 
 **Deployment Process (Step-by-Step)**:
-When I run terragrunt run-all apply, Terragrunt orchestrates the deployment of all resources in my environment according to the dependency graph defined in the configuration.
+When I run terragrunt apply + init, Terragrunt orchestrates the deployment of all resources in my environment according to the dependency graph defined in the configuration.
 
 - Root Configuration (root.hcl)
 Terragrunt first loads the global configuration, including remote state backend (S3), state locking (DynamoDB), and shared variables. At this stage, no actual resources are created - it only sets up where state will be stored.
@@ -30,7 +30,7 @@ This prevents you from “running on a cluster without the provider configured�
 **Terraform forces you to declare providers first, ensuring that no module runs against a system (AWS, Kubernetes, Helm, etc.) before Terraform has the necessary plugin ready.**
 
 Make them available to all modules that reference them
-- Environment-Specific Config (root/live/{dev,prod}/terragrunt.hcl)
+- Environment-Specific Config (root/live/prod/terragrunt.hcl)
 Terragrunt scans the environment folder and builds a dependency graph between modules. Each module knows which outputs from other modules it requires. Providers (AWS, Kubernetes, Helm) are initialized, and module sources are downloaded.
 
 - VPC Module
@@ -45,8 +45,6 @@ IAM policies and IRSA roles are created next. Each pod that needs AWS permission
 - Kubernetes Resources
 Namespaces and ServiceAccounts are created in the cluster. Helm charts that require these ServiceAccounts (like the AWS Load Balancer Controller) are installed afterward so that the pods get the correct AWS permissions via IRSA.
 
-- ArgoCD and Application Deployment
-Finally, ArgoCD is deployed via Helm and configured to sync applications from Git repositories. ArgoCD fetches the repo, renders manifests, and applies them to the cluster (auto-sync if enabled). This ensures all applications are up to date in the cluster.
 
 - Completion
 Once all modules are applied in the correct order, I verify the deployment with commands like kubectl get nodes, kubectl get pods -A, helm list -n kube-system, and terragrunt output-all.
@@ -61,23 +59,12 @@ In the case of the Flask app, the code inside the pod uses boto3 – the AWS SDK
 Additionally, system pods running in the kube-system namespace, such as the ALB Ingress Controller, watch for Ingress resources like ingress.yaml. When an Ingress resource is applied, the ALB controller automatically provisions an Application Load Balancer (ALB) and updates the DNS/endpoint. This ensures that external traffic can reach the correct service in the cluster using the ALB address.
 This setup ensures that permissions and pods are securely and centrally managed through OIDC and IRSA, while traffic is properly routed through the ALB managed by the ingress controller.
 
+**Jenkins Deployment and CI/CD**:
+Jenkins is deployed via Helm as a LoadBalancer service in the cluster. It acts as the Continuous Integration / Continuous Deployment (CI/CD) engine for my applications. Jenkins connects to my GitHub repositories, builds Docker images, pushes them to the container registry, and triggers Helm deployments to my EKS cluster. The Jenkins pod runs inside Kubernetes and can optionally use a ServiceAccount if AWS access is required. Its LoadBalancer service provides a public URL for accessing the Jenkins UI.
 **This command is meant to update your kubeconfig file (usually ~/.kube/config) so that you can connect to your EKS cluster using kubectl:**
-aws eks update-kubeconfig --name dev-eks-cluster --region us-east-1 
-**or in the other cluster:**
 aws eks update-kubeconfig --name prod-eks-cluster --region us-east-1
 
 **Post-Deployment Verification**
-**Access ArgoCD UI**
-# Show initial password
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode
-
-# Port-forward ArgoCD to localhost
-kubectl port-forward svc/argocd-server -n argocd 8080:443
-
-Username: admin
-Local port: 8080 → ArgoCD server port 443
-Namespace: argocd
-
 
 **Verify Cluster Health and Workloads**:
 kubectl get nodes
@@ -85,5 +72,6 @@ kubectl get pods -A
 kubectl get svc -A
 
 **Verify Load Balancer Address**:
-kubectl get ingress flask-ingress -n staging -w (to look for the app in browser add http:// to alb address)
+kubectl get ingress flask-ingress -n prod -w (to look for the app in browser add http:// to alb address)
 
+**visualisation**:
