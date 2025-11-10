@@ -75,3 +75,4 @@ kubectl get svc -A
 kubectl get ingress flask-ingress -n prod -w (to look for the app in browser add http:// to alb address)
 
 **visualisation**:
+![alt text](image.png)
