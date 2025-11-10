@@ -1,4 +1,3 @@
-# ---- IAM Policy ל-Flask App ----
 resource "aws_iam_policy" "flask_app_policy" {
   name        = "prod-flask-app-policy"
   description = "Permissions for Flask App to access Secrets Manager and S3 via IRSA"
@@ -23,7 +22,6 @@ resource "aws_iam_policy" "flask_app_policy" {
   })
 }
 
-# ---- IAM Role ל-IRSA ----
 resource "aws_iam_role" "flask_app_irsa_role" {
   name = "prod-flask-app-irsa-role"
 
@@ -49,14 +47,11 @@ resource "aws_iam_role" "flask_app_irsa_role" {
     module.eks
   ]
 }
-
-# ---- IAM Role Policy Attachment ----
 resource "aws_iam_role_policy_attachment" "flask_app_attach" {
   role       = aws_iam_role.flask_app_irsa_role.name
   policy_arn = aws_iam_policy.flask_app_policy.arn
 }
 
-# ---- Kubernetes Service Account ל-Flask App ----
 resource "kubernetes_service_account" "flask_app_sa" {
   metadata {
     name      = "flask-app-sa"
@@ -70,5 +65,26 @@ resource "kubernetes_service_account" "flask_app_sa" {
   depends_on = [
     aws_iam_role_policy_attachment.flask_app_attach,
     kubernetes_namespace.prod
+  ]
+}
+resource "kubernetes_service_account" "jenkins_sa" {
+  metadata {
+    name      = "jenkins-sa"
+    namespace = kubernetes_namespace.jenkins.metadata[0].name
+  }
+}
+
+resource "helm_release" "jenkins" {
+  name             = "jenkins"
+  repository       = "https://charts.jenkins.io"
+  chart            = "jenkins"
+  namespace        = kubernetes_namespace.jenkins.metadata[0].name
+  create_namespace = false
+
+  set = [
+    { name = "controller.serviceType", value = "LoadBalancer" },
+    { name = "controller.adminUser", value = "admin" },
+    { name = "controller.adminPassword", value = "noa10203040" },
+    { name = "controller.serviceAccountName", value = "jenkins-sa" }
   ]
 }

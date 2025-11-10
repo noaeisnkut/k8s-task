@@ -53,8 +53,6 @@ provider "helm" {
     load_config_file       = false
   }
 }
-
-# Namespace פרוד בלבד
 resource "kubernetes_namespace" "prod" {
   metadata {
     name = "prod"
@@ -63,7 +61,6 @@ resource "kubernetes_namespace" "prod" {
   depends_on = [module.eks]
 }
 
-# ---- IAM Role + Policy ל-Cluster Autoscaler ----
 resource "aws_iam_policy" "cluster_autoscaler" {
   name        = "prod-cluster-autoscaler-policy"
   description = "EKS Cluster Autoscaler permissions"
@@ -98,8 +95,6 @@ module "cluster_autoscaler_irsa" {
   role_policy_arns              = [aws_iam_policy.cluster_autoscaler.arn]
   oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:cluster-autoscaler"]
 }
-
-# ---- IAM + Service Account ל-ALB Controller ----
 resource "aws_iam_role" "aws_lb_controller" {
   name = "prod-aws-lb-controller"
 
@@ -157,4 +152,19 @@ resource "helm_release" "aws_load_balancer_controller" {
   ]
 
   depends_on = [kubernetes_service_account.aws_lb_sa, module.eks]
+}
+resource "helm_release" "jenkins" {
+  name             = "jenkins"
+  repository       = "https://charts.jenkins.io"
+  chart            = "jenkins"
+  namespace        = "jenkins"
+  create_namespace = true
+
+  set = [
+    { name = "controller.serviceType", value = "LoadBalancer" },
+    { name = "controller.adminUser", value = "admin" },
+    { name = "controller.adminPassword", value = "noa10203040" }
+  ]
+
+  depends_on = [module.eks]
 }
