@@ -23,24 +23,18 @@ Next, I installed the psycopg2 driver in Flask and updated the connection string
 Then, I exported only the data I needed from MySQL into an SQL dump and imported it into PostgreSQL using psql, loading it into the cloud database.
 Now, all the pods in the cluster can access the database remotely, without depending on a local database.
 Why PostgreSQL (RDS) instead of PVCs or node storage?
-1. I/O limitations – Regular Kubernetes volumes don’t always handle high read/write throughput well, especially when many pods access them at the same time.
-2. Availability across AZs – PVCs or PVs are usually tied to a single node or availability zone, so pods in other zones might not access them reliably. RDS with Multi-AZ solves this.
-3. Scalability and durability – A managed cloud database takes care of failures, backups, replication, and maintenance automatically, which is much harder to handle manually with PVs/PVCs.
-4. Best practice – When consistency, performance, and reliability matter, using a managed database service like RDS is much better than relying on local node storage.
+1. I/O limitations - Regular Kubernetes volumes don’t always handle high read/write throughput well, especially when many pods access them at the same time.
+2. Availability across AZs - PVCs or PVs are usually tied to a single node or availability zone, so pods in other zones might not access them reliably. RDS can solves this.
+3. Scalability and durability - A managed cloud database takes care of failures, backups, replication, and maintenance automatically, which is much harder to handle manually with PVs/PVCs.
+4. Best practice - When consistency, performance, and reliability matter, using a managed database service like RDS is much better than relying on local node storage.
 
 **other alternative to postgress**:
-1. Block storage volumes (EBS/PVCs) – I could have stored the database directly on a persistent volume backed by block storage. This would give a dedicated storage space for the database, but it’s tied to a single node or AZ, which makes it harder for pods in other zones to access it reliably. I/O performance could also become a bottleneck if many pods are reading/writing simultaneously.
+1. Block storage volumes (EBS/PVCs) - I could have stored the database directly on a persistent volume backed by block storage. This would give a dedicated storage space for the database, but it’s tied to a single node or AZ, which makes it harder for pods in other zones to access it reliably. I/O performance could also become a bottleneck if many pods are reading/writing simultaneously.
 
-2. S3 or object storage – I could have stored the database dump or snapshots in S3. This works for backups or static storage, but it’s not suitable as a live, transactional database, since S3 doesn’t support SQL queries or frequent read/write operations efficiently.
-3. Exporting to MySQL or RDS Aurora – I could have replicated the data into a MySQL database or used Aurora. This can work, but the migration and schema adaptation would have been more complicated. Aurora is scalable and highly available like RDS Postgres, but since my app already depends on PostgreSQL-specific features, this would have added extra complexity.
-4. PV + containerized PostgreSQL – I could have taken the SQL dump I created from MySQL via SQLAlchemy and loaded it into a PostgreSQL instance running inside a pod, using a temporary folder or persistent volume. This would allow me to test or migrate the database without immediately using RDS. However, I would still be responsible for managing backups, replication, failover, and availability across multiple AZs, which is much harder to handle manually compared to using a managed service like RDS.
+2. S3 or object storage - I could have stored the database dump or snapshots in S3. This works for backups or static storage, but it’s not suitable as a live, transactional database, since S3 doesn’t support SQL queries or frequent read/write operations efficiently.
+3. Exporting to MySQL or RDS Aurora - I could have replicated the data into a MySQL database or used Aurora. This can work, but the migration and schema adaptation would have been more complicated. Aurora is scalable and highly available like RDS Postgres, but since my app already depends on PostgreSQL-specific features, this would have added extra complexity.
+4. PV + containerized PostgreSQL - I could have taken the SQL dump I created from MySQL via SQLAlchemy and loaded it into a PostgreSQL instance running inside a pod, using a temporary folder or persistent volume. This would allow me to test or migrate the database without immediately using RDS. However, I would still be responsible for managing backups, replication, failover, and high availability which is much harder to handle manually compared to using a managed service like RDS.
 
-**jenkins Process**
-After installing Jenkins in the Kubernetes cluster using the Helm chart, Jenkins runs as a Deployment with a LoadBalancer Service that exposes the UI. Once deployed, you can access the Jenkins dashboard via the external IP provided by the LoadBalancer: kubectl get svc -n jenkins
-logging in with the admin credentials configured in the Helm chart:
-Jenkins → Manage Jenkins → Credentials → Global → Add Credentials + adding dockerhub-credentials (username=docker-username, password=docker-password).
-From there, you create a new Pipeline job and configure it to use either a Jenkinsfile from SCM (GitHub) or a pipeline script directly.
-then execute the pipeline stages, which in your case include checking out the code, building a Docker image, pushing it to Docker Hub, and deploying the application to the EKS cluster via Helm. Proper configuration of credentials for Docker Hub and access to Kubernetes (kubectl + Helm installed in the Jenkins environment) is required to ensure the pipeline runs successfully.
 
 **Final Result:**
 The backend Flask app is now updated inside the EKS Prod environment.
