@@ -1,6 +1,6 @@
 # Kubernetes Application Deployment with Terragrunt and (ci-cd) pipeline made by jenkins
 
-This repository contains both application code and deployment tools used to manage applications running on Kubernetes clusters.  
+This repository contains both application code and deployment tools used to manage application running on Kubernetes cluster.  
 It integrates infrastructure provisioning and CI/CD automation using jenkin's declerative pipeline.  
 
 ## Repository Contents
@@ -13,7 +13,7 @@ It integrates infrastructure provisioning and CI/CD automation using jenkin's de
 **code info**:
 This is a Flask web application for managing second-hand clothes. It uses Flask-SQLAlchemy to connect to a PostgreSQL database and store user accounts (User) and product listings (AddClothe). Users can sign up, log in, add products with images, and delete their own products. Images are stored in S3, and URLs are generated with a presigned link for secure access.
 The app retrieves sensitive information, like the database password, from AWS Secrets Manager using boto3, which is the AWS SDK for Python. Botocore is a lower-level library used internally by boto3 to handle requests, responses, and error handling with AWS services. Together, they allow the Flask app to securely interact with AWS services, such as S3 for image storage and Secrets Manager for fetching credentials, without hardcoding secrets in the code.
-Environment variables are used for configuration, including AWS region, database connection details, and secret keys, making the app flexible for local development, Docker, or deployment in Kubernetes.
+Environment variables are used for configuration, including AWS region, database connection details, and secret keys, making the app flexible for local development or deployment in Kubernetes.
 
 **why do i have db_dumps in my code?**:
 **Migration to PostgreSQL**
@@ -44,7 +44,7 @@ The backend Flask app is now updated inside the EKS Prod environment.
 1. make sure you add the credentials to cluster for Docker-Hub actions:
 you can just run this command:
 kubectl create secret docker-registry dockerhub-credentials   --docker-username=noa10203040   --docker-password=<password> -n jenkins
-2. open the ui of jenkins and put the pipeline in the block where mentioned - pipeline script.
+2. open the ui of jenkins and put the pipeline in the block where mentioned - pipeline script+ click biuld now.
 3. wait for response (either success or failed)
 4. check the pod to see if it's running:
 kubectl get pods -n prod
@@ -58,7 +58,7 @@ here is a live pic of the web:
 
 Inside my Kubernetes cluster, Jenkins runs as a pod (or set of pods) that acts as the CI/CD automation engine. Jenkins is deployed on the cluster using a Helm chart or Kubernetes manifests, which automatically create the Jenkins controller, persistent storage, service, and a Kubernetes agent template. Because Jenkins runs directly in the cluster, every pipeline step can use Kubernetes agents: when the pipeline starts, Jenkins dynamically creates a temporary pod that executes the build steps, and once the job completes, the pod is removed.
 
-The pipeline itself follows three main stages. First, Jenkins pulls the application’s source code from GitHub. Next, it builds a Docker image of my Python (or any language) application using a Docker, and then pushes the image to a Docker registry (like Docker Hub or ECR). Finally, Jenkins deploys the application into the cluster by applying Kubernetes manifests or Helm charts: this creates a Pod running your app. The pod is then exposed to the outside world on port 443 using either a Kubernetes Service of type LoadBalancer or an Ingress controller with TLS termination.
+The pipeline itself follows three main stages. First, Jenkins pulls the application’s source code from GitHub. Next, it builds a Docker image of my Python (or any language) application using a Docker, and then pushes the image to a Docker registry (like Docker Hub or ECR). Finally, Jenkins deploys the application into the cluster by applying Kubernetes manifests or Helm charts: this creates a Pod running my app. The pod is then exposed to the outside world on port 443 using either a Kubernetes Service of type LoadBalancer or an Ingress controller with TLS termination.
 
 ![alt text](image.png)
 
