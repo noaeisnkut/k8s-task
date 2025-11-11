@@ -2,6 +2,7 @@ namespace: prod
 serviceAccountName: flask-app-sa
 flask:
   image: noa10203040/flask_app
+  tag: latest
   replicas: 1
   containerPort: 5000
   servicePort: 5000

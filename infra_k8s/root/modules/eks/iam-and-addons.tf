@@ -70,21 +70,27 @@ resource "kubernetes_service_account" "flask_app_sa" {
 resource "kubernetes_service_account" "jenkins_sa" {
   metadata {
     name      = "jenkins-sa"
-    namespace = kubernetes_namespace.jenkins.metadata[0].name
+    namespace = "jenkins"
   }
+
+  depends_on = [helm_release.jenkins]
+
 }
 
-resource "helm_release" "jenkins" {
-  name             = "jenkins"
-  repository       = "https://charts.jenkins.io"
-  chart            = "jenkins"
-  namespace        = kubernetes_namespace.jenkins.metadata[0].name
-  create_namespace = false
+resource "kubernetes_cluster_role_binding" "jenkins_crb" {
+  metadata {
+    name = "jenkins-cluster-admin"
+  }
 
-  set = [
-    { name = "controller.serviceType", value = "LoadBalancer" },
-    { name = "controller.adminUser", value = "admin" },
-    { name = "controller.adminPassword", value = "noa10203040" },
-    { name = "controller.serviceAccountName", value = "jenkins-sa" }
-  ]
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "ClusterRole"
+    name      = "cluster-admin"
+  }
+
+  subject {
+    kind      = "ServiceAccount"
+    name      = kubernetes_service_account.jenkins_sa.metadata[0].name
+    namespace = "jenkins"
+  }
 }

@@ -16,7 +16,7 @@ spec:
       serviceAccountName: flask-app-sa 
       containers:
         - name: flask-app
-          image: noa10203040/flask_app:latest
+          image: "{{ .Values.flask.image }}:{{ .Values.flask.tag }}"
           ports:
             - containerPort: 5000
           env:

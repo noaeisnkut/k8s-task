@@ -1,0 +1,72 @@
+pipeline {
+    agent {
+        kubernetes {
+            label 'jenkins-agent'
+            defaultContainer 'jnlp'
+            yamlFile 'jenkins-agent.yaml'
+        }
+    }
+
+    environment {
+        DOCKER_IMAGE = "noa10203040/flask_app"
+        K8S_NAMESPACE = "prod"
+        HELM_RELEASE = "flask-app"
+        HELM_CHART_PATH = "app/helm-chart"
+        IMAGE_TAG = "${env.GIT_COMMIT.take(8)}"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo "Checking out code..."
+                git branch: 'main', url: 'https://github.com/noaeisnkut/k8s-task.git'
+            }
+        }
+
+        stage('Build & Push Image with Kaniko') {
+            steps {
+                container('kaniko') {
+                    script {
+                        sh """
+                            /kaniko/executor \
+                              --context `pwd`/app/backend \
+                              --dockerfile `pwd`/app/backend/Dockerfile \
+                              --destination=$DOCKER_IMAGE:$IMAGE_TAG \
+                              --destination=$DOCKER_IMAGE:latest \
+                              --skip-tls-verify \
+                              --cache=true
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to EKS via Helm') {
+            steps {
+                container('tools') {
+                    script {
+                        sh "kubectl create namespace $K8S_NAMESPACE || true"
+                        sh """
+                            helm repo update
+                            helm upgrade --install $HELM_RELEASE $HELM_CHART_PATH \
+                                --namespace $K8S_NAMESPACE \
+                                --set flask.image=$DOCKER_IMAGE \
+                                --set flask.tag=$IMAGE_TAG \
+                                --wait
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Deployment successful! Image: $DOCKER_IMAGE:$IMAGE_TAG"
+        }
+        failure {
+            echo "Deployment failed!"
+        }
+    }
+}

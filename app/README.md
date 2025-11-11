@@ -10,8 +10,6 @@ It integrates infrastructure provisioning, GitOps synchronization, and CI/CD aut
 - jenkins for active workflow
 - Terragrunt/Terraform configuration for provisioning AWS infrastructure
 
----
-
 **code info**:
 This is a Flask web application for managing second-hand clothes. It uses Flask-SQLAlchemy to connect to a PostgreSQL database and store user accounts (User) and product listings (AddClothe). Users can sign up, log in, add products with images, and delete their own products. Images are stored in S3, and URLs are generated with a presigned link for secure access.
 The app retrieves sensitive information, like the database password, from AWS Secrets Manager using boto3, which is the AWS SDK for Python. Botocore is a lower-level library used internally by boto3 to handle requests, responses, and error handling with AWS services. Together, they allow the Flask app to securely interact with AWS services, such as S3 for image storage and Secrets Manager for fetching credentials, without hardcoding secrets in the code.

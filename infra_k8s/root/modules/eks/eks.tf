@@ -10,6 +10,9 @@ module "eks" {
     eks-pod-identity-agent = { before_compute = true }
     kube-proxy             = {}
     vpc-cni                = { before_compute = true }
+    aws-ebs-csi-driver = {
+    service_account_role_arn = module.ebs_csi_driver_irsa.iam_role_arn
+    }
   }
 
   endpoint_public_access                   = true
@@ -22,7 +25,7 @@ module "eks" {
   eks_managed_node_groups = {
     nodes1 = {
       ami_type       = "AL2023_x86_64_STANDARD"
-      instance_types = var.eks_node_sizes
+      instance_types = var.eks_node_sizes 
       min_size       = 1
       max_size       = 2
       desired_size   = 1
@@ -95,6 +98,17 @@ module "cluster_autoscaler_irsa" {
   role_policy_arns              = [aws_iam_policy.cluster_autoscaler.arn]
   oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:cluster-autoscaler"]
 }
+module "ebs_csi_driver_irsa" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
+  version = "~> 5.46.0" 
+
+  create_role                   = true
+  role_name                     = "prod-ebs-csi-driver"
+  provider_url                  = replace(module.eks.cluster_oidc_issuer_url, "https://", "")
+  role_policy_arns              = ["arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"]
+  oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
+}
+
 resource "aws_iam_role" "aws_lb_controller" {
   name = "prod-aws-lb-controller"
 
@@ -159,12 +173,9 @@ resource "helm_release" "jenkins" {
   chart            = "jenkins"
   namespace        = "jenkins"
   create_namespace = true
-
   set = [
-    { name = "controller.serviceType", value = "LoadBalancer" },
-    { name = "controller.adminUser", value = "admin" },
-    { name = "controller.adminPassword", value = "noa10203040" }
+    { name = "controller.admin.username", value = "admin" },
+    { name = "controller.admin.password", value = "noa10203040" }
   ]
-
-  depends_on = [module.eks]
+  depends_on = [module.eks] 
 }

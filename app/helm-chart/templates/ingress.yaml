@@ -9,7 +9,7 @@ metadata:
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/target-port: 5000
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
-    alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.flask.acmCertificateArn }}"
+    alb.ingress.kubernetes.io/certificate-arn: {{ .Values.flask.acmCertificateArn }}
 spec:
   ingressClassName: alb
   rules:
