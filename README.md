@@ -2,7 +2,7 @@ Hello!
 
 Below is the explanation for the tasks I completed as part of the technical interview.
 
-Q1 -Jenkins Pipeline Task
+**Q1 -Jenkins Pipeline Task**
 
 Task Summary:
 
@@ -15,7 +15,7 @@ Stage 2: Deploy the application on a second server as a Kubernetes Pod.
 Expose the application externally over HTTPS on port 443.
 
 
-My Answer to Q1:
+**My Answer to Q1:**
 
 You can find the full solution in the following structure:
 
@@ -26,16 +26,16 @@ You can find the full solution in the following structure:
 Jenkinsfile -contains the complete Jenkins Declarative Pipeline implementation.
 
 
-Q2 - Theoretical Questions
+**Q2 - Theoretical Questions**
 
-My Answer to Q2:
+**My Answer to Q2:**
 
 All responses to the theoretical questions are located in:
 
 /Theoretical_questions
 
 
-Q3 - Terraform & EC2 Task
+**Q3 - Terraform & EC2 Task**
 
 Task Summary:
 
@@ -51,7 +51,7 @@ A Security Group allowing inbound traffic only from the Leumi proxy IP: 91.231.2
 3. Expose this EC2 instance using a Network Load Balancer (NLB).
 
 
-My Answer to Q3:
+**My Answer to Q3:**
 
 The full implementation is available in:
 
