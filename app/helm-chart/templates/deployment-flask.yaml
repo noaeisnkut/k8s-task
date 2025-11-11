@@ -16,16 +16,16 @@ spec:
       serviceAccountName: flask-app-sa 
       containers:
         - name: flask-app
-          image: "{{ .Values.flask.image }}:{{ .Values.flask.tag }}"
+          image: {{ .Values.flask.image }}:{{ .Values.flask.tag }}
           ports:
             - containerPort: 5000
           env:
             - name: DB_USER
               value: postgres
             - name: DB_HOST
-              value: my-postgress-db.cc3m62swkfac.us-east-1.rds.amazonaws.com
+              value: my-db.cc3m62swkfac.us-east-1.rds.amazonaws.com
             - name: DB_NAME
-              value: flask
+              value: my-db
             - name: DB_PORT
               value: "5432"
             - name: AWS_REGION
