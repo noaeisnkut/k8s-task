@@ -19,11 +19,11 @@ Expose the application externally over HTTPS on port 443.
 
 You can find the full solution in the following structure:
 
-/app -contains the application code and the Helm chart used for deployment.
+**/app** -contains the application code and the Helm chart used for deployment.
 
-/infra_k8s -contains the Terragrunt-based Kubernetes infrastructure (I used this to provision the production cluster).
+**/infra_k8s** -contains the Terragrunt-based Kubernetes infrastructure (I used this to provision the production cluster).
 
-Jenkinsfile -contains the complete Jenkins Declarative Pipeline implementation.
+**Jenkinsfile** -contains the complete Jenkins Declarative Pipeline implementation.
 
 
 **Q2 - Theoretical Questions**
@@ -32,7 +32,7 @@ Jenkinsfile -contains the complete Jenkins Declarative Pipeline implementation.
 
 All responses to the theoretical questions are located in:
 
-/Theoretical_questions
+**/Theoretical_questions**
 
 
 **Q3 - Terraform & EC2 Task**
@@ -55,4 +55,4 @@ A Security Group allowing inbound traffic only from the Leumi proxy IP: 91.231.2
 
 The full implementation is available in:
 
-/infra_ec2test
+**/infra_ec2test**
