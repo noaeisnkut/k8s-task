@@ -33,20 +33,25 @@ Make them available to all modules that reference them
 - Environment-Specific Config (root/live/prod/terragrunt.hcl)
 Terragrunt scans the environment folder and builds a dependency graph between modules. Each module knows which outputs from other modules it requires. Providers (AWS, Kubernetes, Helm) are initialized, and module sources are downloaded.
 
-- VPC Module
+- **VPC Module**
+  
 The VPC module runs first to create the networking layer: VPC, subnets (public/private), route tables, IGW, NAT Gateway, and security groups. Its outputs (VPC ID, subnet IDs) are required by other modules like EKS.
 
-- EKS Module
+- **EKS Module**
+  
 The EKS module waits for VPC outputs, then creates the EKS cluster (control plane), managed node groups, and add-ons. Kubernetes and Helm providers are initialized only after the cluster endpoint and token are available (data.aws_eks_cluster_auth).
 
-- IAM Roles / IRSA
+- **IAM Roles / IRSA**
+  
 IAM policies and IRSA roles are created next. Each pod that needs AWS permissions (e.g., S3 access, Load Balancer management) gets a dedicated IAM role linked to a ServiceAccount. These roles depend on the cluster’s OIDC provider and cannot be fully attached until the cluster is active.
 
-- Kubernetes Resources
+- **Kubernetes Resources**
+  
 Namespaces and ServiceAccounts are created in the cluster. Helm charts that require these ServiceAccounts (like the AWS Load Balancer Controller) are installed afterward so that the pods get the correct AWS permissions via IRSA.
 
 
-- Completion
+- **Completion**
+  
 Once all modules are applied in the correct order, I verify the deployment with commands like kubectl get nodes, kubectl get pods -A, helm list -n kube-system, and terragrunt output-all.
 
 **more info about the proccess of irsa + oidc + boto3 + alb**:
