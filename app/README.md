@@ -1,4 +1,4 @@
-# Kubernetes Application Deployment with Terragrunt, ArgoCD, and GitHub Actions
+# Kubernetes Application Deployment with Terragrunt,jenkins
 
 This repository contains both application code and deployment tools used to manage applications running on Kubernetes clusters.  
 It integrates infrastructure provisioning, GitOps synchronization, and CI/CD automation using a unified workflow.  
