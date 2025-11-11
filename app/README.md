@@ -1,7 +1,7 @@
 # Kubernetes Application Deployment with Terragrunt and (ci-cd) pipeline made by jenkins
 
 This repository contains both application code and deployment tools used to manage applications running on Kubernetes clusters.  
-It integrates infrastructure provisioning, GitOps synchronization, and CI/CD automation using a unified workflow.  
+It integrates infrastructure provisioning and CI/CD automation using jenkin's declerative pipeline.  
 
 ## Repository Contents
 
