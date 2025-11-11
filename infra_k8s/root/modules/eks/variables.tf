@@ -32,3 +32,14 @@ variable "control_plane_subnet_ids" {
   description = "Control plane subnet IDs for the EKS cluster"
   type        = list(string)
 }
+variable "domain_name" {
+  description = "domain name "
+  default = "my-web.com"
+  type        = string
+}
+
+variable "app_subdomain" {
+  description = "subdomain to app"
+  default = "my-flask-app"
+  type        = string
+}

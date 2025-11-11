@@ -26,3 +26,8 @@ output "cluster_token" {
   value       = data.aws_eks_cluster_auth.this.token
   sensitive = true
 }
+
+output "self_signed_certificate_arn" {
+  description = "The ARN of the self-signed certificate in ACM"
+  value       = aws_acm_certificate.self_signed_cert.arn
+}

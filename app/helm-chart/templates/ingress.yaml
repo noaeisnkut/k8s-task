@@ -2,14 +2,14 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: flask-ingress
-  namespace: {{.Values.namespace}}
+  namespace: {{ .Values.namespace }} 
   annotations:
-    kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/target-port: 5000
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
-    alb.ingress.kubernetes.io/certificate-arn: {{ .Values.flask.acmCertificateArn }}
+    alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.flask.acmCertificateArn }}"
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+
 spec:
   ingressClassName: alb
   rules:
