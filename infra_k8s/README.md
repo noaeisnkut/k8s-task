@@ -59,6 +59,10 @@ In the case of the Flask app, the code inside the pod uses boto3 – the AWS SDK
 Additionally, system pods running in the kube-system namespace, such as the ALB Ingress Controller, watch for Ingress resources like ingress.yaml. When an Ingress resource is applied, the ALB controller automatically provisions an Application Load Balancer (ALB) and updates the DNS/endpoint. This ensures that external traffic can reach the correct service in the cluster using the ALB address.
 This setup ensures that permissions and pods are securely and centrally managed through OIDC and IRSA, while traffic is properly routed through the ALB managed by the ingress controller.
 
+
+**acm + port 443 requests:**
+In this configuration, i generated a secure RSA private key and use it to create a fully self-sufficient TLS certificate through Terraform. The certificate includes defined subject details and is configured with the appropriate key usages required for strong HTTPS communication, such as server authentication, digital signatures, and key encipherment. then, i imported this certificate into AWS ACM, enabling it to be used by AWS services that terminate SSL/TLS traffic on port 443. The lifecycle rule ensures smooth rotation by creating a new certificate before the previous one is replaced, resulting in a clean, reliable, and automation-driven approach to managing HTTPS certificates within my infrastructure.
+
 **Jenkins Deployment and CI/CD**:
 Jenkins is deployed via Helm as a LoadBalancer service in the cluster. It acts as the Continuous Integration / Continuous Deployment (CI/CD) engine for my applications. Jenkins connects to my GitHub repositories, builds Docker images, pushes them to the container registry, and triggers Helm deployments to my EKS cluster. The Jenkins pod runs inside Kubernetes and can optionally use a ServiceAccount if AWS access is required. Its LoadBalancer service provides a public URL for accessing the Jenkins UI.
 **This command is meant to update your kubeconfig file (usually ~/.kube/config) so that you can connect to your EKS cluster using kubectl:**
@@ -69,10 +73,9 @@ aws eks update-kubeconfig --name prod-eks-cluster --region us-east-1
 **Verify Cluster Health and Workloads**:
 kubectl get nodes
 kubectl get pods -A
-kubectl get svc -A
 
 **Verify Load Balancer Address**:
-kubectl get ingress flask-ingress -n prod -w (to look for the app in browser add http:// to alb address)
+kubectl get ingress -n prod
 
 **visualisation**:
 ![alt text](image.png)

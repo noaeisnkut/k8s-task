@@ -3,7 +3,51 @@ pipeline {
         kubernetes {
             label 'jenkins-agent'
             defaultContainer 'jnlp'
-            yamlFile 'jenkins-agent.yaml'
+
+            yaml """
+spec:
+  serviceAccountName: jenkins-sa
+  containers:
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:debug
+      command: ["/bin/sh", "-c"]
+      args: ["sleep 3600"]
+      tty: true
+      volumeMounts:
+        - name: docker-config
+          mountPath: /kaniko/.docker
+        - name: workspace-volume
+          mountPath: /workspace
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "200m"
+        limits:
+          memory: "1Gi"
+          cpu: "1"
+    - name: tools
+      image: dtzar/helm-kubectl:latest
+      command: ["/bin/sh", "-c"]
+      args: ["sleep 3600"]
+      tty: true
+      volumeMounts:
+        - name: workspace-volume
+          mountPath: /workspace
+      resources:
+        requests:
+          memory: "256Mi"
+          cpu: "100m"
+        limits:
+          memory: "512Mi"
+          cpu: "500m"
+  volumes:
+    - name: docker-config
+      secret:
+        secretName: dockerhub-credentials
+        items:
+          - key: .dockerconfigjson
+            path: config.json
+"""
         }
     }
 
@@ -12,15 +56,18 @@ pipeline {
         K8S_NAMESPACE = "prod"
         HELM_RELEASE = "flask-app"
         HELM_CHART_PATH = "app/helm-chart"
-        IMAGE_TAG = "${env.GIT_COMMIT.take(8)}"
     }
 
     stages {
-
-        stage('Checkout') {
+        stage('Checkout & Define Tag') {
             steps {
-                echo "Checking out code..."
-                git branch: 'main', url: 'https://github.com/noaeisnkut/k8s-task.git'
+                echo "Checking out code and defining tag..."
+                script {
+                    def scmVars = git branch: 'main', url: 'https://github.com/noaeisnkut/k8s-task.git'
+                    def commitHash = scmVars.GIT_COMMIT.take(8)
+                    env.IMAGE_TAG = commitHash
+                    echo "Image tag set to: ${env.IMAGE_TAG}"
+                }
             }
         }
 
@@ -48,7 +95,6 @@ pipeline {
                     script {
                         sh "kubectl create namespace $K8S_NAMESPACE || true"
                         sh """
-                            helm repo update
                             helm upgrade --install $HELM_RELEASE $HELM_CHART_PATH \
                                 --namespace $K8S_NAMESPACE \
                                 --set flask.image=$DOCKER_IMAGE \

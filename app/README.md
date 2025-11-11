@@ -44,7 +44,21 @@ then execute the pipeline stages, which in your case include checking out the co
 
 **Final Result:**
 The backend Flask app is now updated inside the EKS Prod environment.
+ 
 
+**running the jenkinsfile: steps**
+1. make sure you add the credentials to cluster for Docker-Hub actions:
+you can just run this command:
+kubectl create secret docker-registry dockerhub-credentials   --docker-username=noa10203040   --docker-password=<password> -n jenkins
+2. open the ui of jenkins and put the pipeline in the block where mentioned - pipeline script.
+3. wait for response (either success or failed)
+4. check the pod to see if it's running:
+kubectl get pods -n prod
+5. check the alb attached address (which attached to port :80 , 443), by runnig this command:
+kubectl get ingress -n prod
+6. view the website as you wish!
+here is a live pic of the web:
+![alt text](image-1.png)
 
 ## Visualization
 
